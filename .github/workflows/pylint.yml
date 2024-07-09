@@ -1,0 +1,36 @@
+name: Pylint
+
+on: [pull_request, push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install tools
+      run: pip install bandit pycodestyle pyflakes
+
+    - name: Lint code
+      run: |
+        pyflakes nova3/engines/*.py
+        bandit --skip B110,B314,B405 dmhy.py
+
+    - name: Format code
+      run: |
+        # skipping E265, fixing it will break plugin usage on older qbt instances (< v4.1.2)
+        pycodestyle \
+          --ignore=E265,W503 \
+          --max-line-length=100 \
+          --statistics \
+          dmhy.py
+
+    - name: Build code
+      run: |
+        python -m compileall dmhy.py
