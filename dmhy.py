@@ -26,8 +26,9 @@ class dmhy(object):
 
     `url`: The URL of the search engine.
     `name`: The name of the search engine, spaces and special characters are allowed here.
-    `supported_categories`: What categories are supported by the search engine and their corresponding id,
-    possible categories are ('all', 'anime', 'books', 'games', 'movies', 'music', 'pictures', 'software', 'tv').
+    `supported_categories`: What categories are supported by the search engine and their
+    corresponding id, possible categories are ('all', 'anime', 'books', 'games', 'movies',
+    'music', 'pictures', 'software', 'tv').
     """
     url = ENGINE_BASEURL
     name = 'dmhy'
