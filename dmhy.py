@@ -1,3 +1,5 @@
+#VERSION: 1.00
+
 import re
 from enum import Enum
 from html.parser import HTMLParser
