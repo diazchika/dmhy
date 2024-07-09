@@ -1,7 +1,10 @@
 import re
 from enum import Enum
 from html.parser import HTMLParser
-from helpers import download_file, retrieve_url
+from helpers import (
+    # download_file,
+    retrieve_url,
+)
 from novaprinter import prettyPrinter
 
 ENGINE_BASEURL = 'http://dmhy.org'
@@ -175,7 +178,8 @@ class dmhy(object):
         and call the prettyPrint(your_dict) function.
 
         `what` is a string with the search tokens, already escaped (e.g. "Ubuntu+Linux")
-        `cat` is the name of a search category in ('all', 'anime', 'books', 'games', 'movies', 'music', 'pictures', 'software', 'tv')
+        `cat` is the name of a search category in ('all', 'anime', 'books', 'games',
+        'movies', 'music', 'pictures', 'software', 'tv')
         """
 
         # Loop through all the pages of the search results
