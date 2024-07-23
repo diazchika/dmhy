@@ -1,4 +1,4 @@
-#VERSION: 1.00
+#VERSION: 1.1
 
 import re
 from enum import Enum
@@ -12,13 +12,11 @@ from novaprinter import prettyPrinter
 ENGINE_BASEURL = 'http://dmhy.org'
 MAGNET_PATTERN = r'magnet:\?xt=urn:btih:[a-zA-Z0-9]*'
 
-
-class TableHeader(Enum):
-    Title = 3
-    Maglink = 4
-    Size = 5
-    Seeder = 6
-    Leech = 7
+TITLE = 3
+MAGLINK = 4
+SIZE = 5
+SEEDER = 6
+LEECH = 7
 
 
 class dmhy(object):
@@ -88,7 +86,7 @@ class dmhy(object):
             # The anchor tag in the third cell contains the page url.
             # Save page url into the dictionary, and retrieve the page to get the magnet link
             # Also save the magnet link into the dictionary
-            if tag == 'a' and self.in_cell_num == TableHeader.Title.value:
+            if tag == 'a' and self.in_cell_num == TITLE:
                 for attr in attrs:
                     if attr[0] == 'href':
                         self.result_dict["desc_link"] = ENGINE_BASEURL + attr[1]
@@ -96,7 +94,7 @@ class dmhy(object):
 
             # Only the first (of two) anchor tag in the fourth cell contains the magnet link
             # So a regular expression check is performed to make sure it is a magnet link
-            if tag == 'a' and self.in_cell_num == TableHeader.Maglink.value:
+            if tag == 'a' and self.in_cell_num == MAGLINK:
                 for attr in attrs:
                     if attr[0] == 'href' and re.match(MAGNET_PATTERN, attr[1]):
                         self.result_dict["link"] = attr[1]
@@ -104,25 +102,25 @@ class dmhy(object):
         def handle_data(self, data):
             # The third cell contains the name of the torrent,
             # but it may be split into multiple parts. Concatenate them.
-            if self.in_cell and self.in_cell_num == TableHeader.Title.value:
+            if self.in_cell and self.in_cell_num == TITLE:
                 self.result_dict["name"] += re.sub(r"[\t\n]", "", data)
                 return
 
             # The fourth cell contains the size of the torrent
             # Safe to use as is.
-            if self.in_cell and self.in_cell_num == TableHeader.Size.value:
+            if self.in_cell and self.in_cell_num == SIZE:
                 self.result_dict["size"] = data
                 return
 
             # The sixth cell contains the number of seeders
             # This data is not always available, so check for a dash
-            if self.in_cell and self.in_cell_num == TableHeader.Seeder.value and data != '-':
+            if self.in_cell and self.in_cell_num == SEEDER and data != '-':
                 self.result_dict["seeds"] = data
                 return
 
             # The seventh cell contains the number of leech
             # Same as the seeders, check for a dash
-            if self.in_cell and self.in_cell_num == TableHeader.Leech.value and data != '-':
+            if self.in_cell and self.in_cell_num == LEECH and data != '-':
                 self.result_dict["leech"] = data
                 return
 
@@ -144,7 +142,7 @@ class dmhy(object):
                     magnet_links = re.findall(MAGNET_PATTERN, page)
                     self.result_dict["link"] = magnet_links[0]
 
-                self.outer_class.result_dicts.append(self.result_dict)
+                prettyPrinter(self.result_dict)
                 return
 
             # Reset the tbody flag when the tbody ends
@@ -185,17 +183,12 @@ class dmhy(object):
         'movies', 'music', 'pictures', 'software', 'tv')
         """
 
-        # Loop through all the pages of the search results
         search_url = f"http://dmhy.org/topics/list?keyword={what}"
         while True:
-            # Retrieve the page and feed it to the parser.
             result_page = retrieve_url(search_url)
             parser = self.DmhyParser(outer_class=self)
             parser.feed(result_page)
 
-            # Use regular expression to find out if there is a next page
-            # If there is, update the search_url and continue the loop
-            # If there is no next page, break the loop
             pattern = fr'<a\s+href="/topics/list/page/(\d+)\?keyword={re.escape(what)}">下一頁</a>'
             match = re.search(pattern, result_page)
             if match:
@@ -203,8 +196,3 @@ class dmhy(object):
                 continue
             else:
                 break
-
-        # Sort the results by the number# of seeds, and print them
-        self.result_dicts.sort(key=lambda x: int(x["seeds"]), reverse=True)
-        for result_dict in self.result_dicts:
-            prettyPrinter(result_dict)
